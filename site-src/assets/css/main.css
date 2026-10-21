@@ -13,7 +13,7 @@
   --line:rgba(86,61,35,.2); --line-2:rgba(86,61,35,.45);
   --serif:"Fraunces",Georgia,"Times New Roman",serif;
   --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  --hdr:76px; --sub:46px; --r:8px;
+  --hdr:104px; --sub:46px; --r:8px;
 }
 *{box-sizing:border-box}
 html{scroll-padding-top:calc(var(--hdr) + var(--sub) + 12px)}
@@ -62,7 +62,7 @@ img{max-width:100%;height:auto}
 .bars i{display:block;height:2.5px;border-radius:2px;background:currentColor;transition:width .2s}
 .menu-btn:hover .bars i:nth-child(2){width:70%}
 .brand{display:flex;align-items:center;text-decoration:none;justify-self:center}
-.brand img{display:block;height:56px;width:auto}
+.brand img{display:block;height:84px;width:auto}
 .subnav{background:#EFEDE4;border-top:1px solid var(--line)}
 .subnav ul{display:flex;justify-content:center;gap:clamp(20px,4vw,56px);list-style:none;margin:0 auto;padding:0;height:var(--sub);align-items:center}
 .subnav a{position:relative;display:block;padding:12px 0;font:600 .95rem var(--sans);color:var(--deep);text-decoration:none}
@@ -74,7 +74,7 @@ img{max-width:100%;height:auto}
 .lang a[aria-current]{background:var(--forest);color:var(--deep)}
 .lang a:not([aria-current]):hover{background:var(--paper-2)}
 @media(max-width:760px){.subnav{display:none}}
-@media(max-width:640px){.hdr-cta{display:none}.brand img{height:46px}:root{--hdr:64px}}
+@media(max-width:640px){.hdr-cta{display:none}.brand img{height:62px}:root{--hdr:78px}}
 
 /* ---------- slide-in menu (matest-style) ---------- */
 .scrim{position:fixed;inset:0;background:rgba(46,32,18,.55);opacity:0;visibility:hidden;transition:opacity .3s,visibility 0s .3s;z-index:60}
