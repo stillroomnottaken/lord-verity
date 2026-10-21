@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import wa_btn, mail_btn with context %}
+{% block title %}{{ L('Contact Us', 'Hubungi Kami') }}{% endblock %}
+{% block desc %}{{ L('Contact BMS by WhatsApp or email. Suppliers offer materials; buyers send an enquiry.', 'Hubungi BMS lewat WhatsApp atau email. Supplier menawarkan material; buyer mengirim permintaan.') }}{% endblock %}
+{% block main %}
+<section class="head head-maize">
+  <div class="wrap">
+    <p class="eyebrow">{{ L('Contact Us', 'Hubungi Kami') }}</p>
+    <h1>{{ L('How would you like to reach BMS?', 'Bagaimana Anda ingin menghubungi BMS?') }}</h1>
+    <p class="lead">{{ L('Choose the option that fits you. We reply on the channel you use.', 'Pilih opsi yang sesuai. Kami membalas lewat saluran yang Anda gunakan.') }}</p>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap form-grid">
+    <div class="cols-2 contact-cols">
+      <div class="card">
+        <p class="eyebrow">{{ L('I am a supplier', 'Saya supplier') }}</p>
+        <h2 class="card-h">{{ L('Offer materials to BMS', 'Tawarkan material ke BMS') }}</h2>
+        <p>{{ L('Send us a message and we will reply.', 'Kirim pesan dan kami akan membalas.') }}</p>
+        <div class="stack">
+          {{ wa_btn(L('CONTACT US', 'HUBUNGI KAMI'), L('Hello BMS, I would like to offer materials as a supplier.', 'Halo BMS, saya ingin menawarkan material sebagai supplier.'), 'btn-gold') }}
+        </div>
+      </div>
+      <div class="card">
+        <p class="eyebrow">{{ L('I am a buyer', 'Saya buyer') }}</p>
+        <h2 class="card-h">{{ L('Ask BMS for a material', 'Tanyakan material ke BMS') }}</h2>
+        <p>{{ L('Tell us what you need and we will reply.', 'Sampaikan kebutuhan Anda dan kami akan membalas.') }}</p>
+        <div class="stack">
+          {{ wa_btn(L('CONTACT US', 'HUBUNGI KAMI'), L('Hello BMS, I would like to ask about a material.', 'Halo BMS, saya ingin menanyakan sebuah material.'), 'btn-forest') }}
+        </div>
+      </div>
+    </div>
+
+    <aside class="info" aria-label="{{ L('Company details', 'Detail perusahaan') }}">
+      <h2>{{ site.name }}</h2>
+      <p class="nib">NIB {{ site.nib }}</p>
+      <p>Jakarta, Indonesia</p>
+      {% if site.email %}<dl>
+        <div><dt>Email</dt><dd><a href="mailto:{{ site.email }}">{{ site.email }}</a></dd></div>
+      </dl>{% endif %}
+    </aside>
+  </div>
+</section>
+{% endblock %}

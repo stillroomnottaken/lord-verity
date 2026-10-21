@@ -1,0 +1,214 @@
+/* BMS site script — no dependencies. Three jobs: slide-in menu, catalogue filter, supplier/buyer forms (WhatsApp hand-off, or a real POST to site.json inquiry_endpoint). */
+(function () {
+  'use strict';
+
+  /* ---------- 1. Slide-in menu ---------- */
+  var openBtn = document.querySelector('.menu-btn[aria-controls="menu"]');
+  var menu = document.getElementById('menu');
+  if (openBtn && menu) {
+    var closeBtn = menu.querySelector('.menu-close');
+    var setOpen = function (open) {
+      document.body.classList.toggle('menu-open', open);
+      openBtn.setAttribute('aria-expanded', String(open));
+      (open ? closeBtn : openBtn).focus();
+    };
+    openBtn.addEventListener('click', function () { setOpen(true); });
+    document.querySelectorAll('[data-menu-close]').forEach(function (el) {
+      el.addEventListener('click', function () { setOpen(false); });
+    });
+    // Back/forward cache can restore the page with the menu still open
+    window.addEventListener('pageshow', function () {
+      document.body.classList.remove('menu-open');
+      openBtn.setAttribute('aria-expanded', 'false');
+    });
+    document.addEventListener('keydown', function (e) {
+      if (!document.body.classList.contains('menu-open')) { return; }
+      if (e.key === 'Escape') { setOpen(false); return; }
+      if (e.key === 'Tab') {                       // keep focus inside the open menu
+        var f = menu.querySelectorAll('a[href],button');
+        var first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
+  }
+
+  /* ---------- 2. Catalogue filter ---------- */
+  var filters = document.querySelectorAll('[data-filter]');
+  var cards = document.querySelectorAll('.mat[data-cat]');
+  filters.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var f = btn.getAttribute('data-filter');
+      filters.forEach(function (b) { b.setAttribute('aria-pressed', String(b === btn)); });
+      cards.forEach(function (c) { c.hidden = !(f === 'all' || c.getAttribute('data-cat') === f); });
+    });
+  });
+
+  /* ---------- 3. Supplier / buyer forms ----------
+     data-mode="whatsapp": validates, writes the enquiry out and opens wa.me. The visitor must still tap send, and the page says so.
+     data-mode="post":     POSTs JSON to data-endpoint (site.json "inquiry_endpoint"). "Thank you" shows ONLY when the server answers OK;
+                           any network error or non-2xx answer shows the failure message with a WhatsApp fallback. */
+  document.querySelectorAll('form[data-kind]').forEach(initForm);
+
+  function initForm(form) {
+    var kind = form.getAttribute('data-kind');           // 'supplier' | 'buyer'
+    var mode = form.getAttribute('data-mode');           // 'whatsapp' | 'post'
+    var WA = form.getAttribute('data-wa');
+    var lang = form.getAttribute('data-lang') === 'id' ? 'id' : 'en';
+    var TXT = {
+      en: { buyer: 'BUYER enquiry', supplier: 'SUPPLIER offer', material: 'Material', qty: 'Quantity', qtyHave: 'Quantity available',
+            loc: 'Location', notes: 'Notes', name: 'Name', company: 'Company', phone: 'WhatsApp', email: 'Email',
+            foot: 'Sent from the BMS website', tbd: 'unit to be discussed' },
+      id: { buyer: 'Permintaan BUYER', supplier: 'Penawaran SUPPLIER', material: 'Material', qty: 'Jumlah', qtyHave: 'Jumlah tersedia',
+            loc: 'Lokasi', notes: 'Catatan', name: 'Nama', company: 'Perusahaan', phone: 'WhatsApp', email: 'Email',
+            foot: 'Dikirim dari situs BMS', tbd: 'satuan dibahas nanti' }
+    }[lang];
+    var el = function (n) { return form.elements[n]; };
+    var submitBtn = form.querySelector('button[type=submit]');
+    var okBox = form.querySelector('[data-ok]');
+    var failBox = form.querySelector('[data-fail]');
+    var sentBox = form.querySelector('[data-sent]');
+    var sentLink = form.querySelector('[data-sent-link]');
+    var otherWrap = form.querySelector('[data-other]');
+    var contactErr = form.querySelector('[data-contact-err]');
+
+    // "Other / not listed" reveals a free-text field
+    var toggleOther = function () { if (otherWrap) { otherWrap.hidden = el('material').value !== 'other'; } };
+    el('material').addEventListener('change', toggleOther);
+
+    // Prefill from catalogue buttons: ?material=corn-cobs
+    var mat = (new URLSearchParams(window.location.search).get('material') || '').replace(/[^\w-]/g, '');
+    if (mat && form.querySelector('select[name=material] option[value="' + mat + '"]')) { el('material').value = mat; }
+    toggleOther();
+
+    // Phone: Indonesian local (08...) or international -> digits for wa.me
+    var normPhone = function (raw) {
+      var plus = raw.trim().charAt(0) === '+';
+      var d = raw.replace(/\D/g, '');
+      if (!plus) {
+        if (d.indexOf('00') === 0) { d = d.slice(2); }
+        else if (d.charAt(0) === '0') { d = '62' + d.slice(1); }
+        else if (d.charAt(0) === '8') { d = '62' + d; }
+      }
+      return d;
+    };
+    var val = function (n) { return el(n) ? el(n).value.trim() : ''; };
+    var mark = function (field, bad) { field.setAttribute('aria-invalid', bad ? 'true' : 'false'); return bad; };
+
+    // Build the enquiry once; both modes use it
+    var collect = function () {
+      var sel = el('material');
+      var shown = sel.options[sel.selectedIndex].text;
+      var matName = sel.value === 'other' ? (val('other') || shown) : shown;
+      var unit = el('unit');
+      var qty = val('qty');
+      var unitText = unit.value ? unit.options[unit.selectedIndex].text : '(' + TXT.tbd + ')';
+      var digits = val('phone') ? normPhone(val('phone')) : '';
+      return {
+        material: matName, slug: sel.value, qty: qty, unit: unit.value, unitText: unitText,
+        qtyLine: qty ? qty + ' ' + unitText : '', location: val('location'), notes: val('notes'),
+        name: val('name'), company: val('company'), phone: digits ? '+' + digits : '', email: val('email')
+      };
+    };
+    var waMessage = function (d) {
+      return [
+        '*' + TXT[kind] + '*',
+        TXT.material + ': ' + d.material,
+        d.qtyLine ? (kind === 'supplier' ? TXT.qtyHave : TXT.qty) + ': ' + d.qtyLine : false,
+        d.location ? TXT.loc + ': ' + d.location : false,
+        d.notes ? TXT.notes + ': ' + d.notes : false,
+        '',
+        TXT.name + ': ' + d.name,
+        d.company ? TXT.company + ': ' + d.company : false,
+        d.phone ? TXT.phone + ': ' + d.phone : false,
+        d.email ? TXT.email + ': ' + d.email : false,
+        '',
+        '_' + TXT.foot + '_'
+      ].filter(function (l) { return l !== false; }).join('\n');
+    };
+    var waUrl = function (d) { return 'https://wa.me/' + WA + '?text=' + encodeURIComponent(waMessage(d)); };
+
+    var hideResults = function () {
+      [okBox, failBox, sentBox].forEach(function (b) { if (b) { b.classList.remove('show'); } });
+    };
+    var showBox = function (box) {
+      hideResults();
+      box.classList.add('show');
+      box.setAttribute('tabindex', '-1');
+      box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    };
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (submitBtn.disabled) { return; }
+      var bad = false, first = null;
+      var flag = function (field, isBad) { if (mark(field, isBad) && !first) { first = field; } bad = bad || isBad; };
+
+      flag(el('material'), !el('material').value);
+      flag(el('name'), !val('name'));
+      var digits = val('phone') ? normPhone(val('phone')) : '';
+      var phoneBad = false, emailBad = false;
+      if (kind === 'supplier') {
+        phoneBad = digits.length < 9 || digits.length > 15;
+        flag(el('location'), !val('location'));
+      } else {
+        phoneBad = !!val('phone') && (digits.length < 9 || digits.length > 15);
+        emailBad = !!val('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(val('email'));
+        flag(el('email'), emailBad);
+      }
+      flag(el('phone'), phoneBad);
+      var noContact = kind === 'buyer' && !val('phone') && !val('email');
+      if (contactErr) { contactErr.classList.toggle('show', noContact); }
+      if (noContact) { bad = true; if (!first) { first = el('phone'); } }
+      if (bad) { first.focus(); return; }
+
+      var d = collect();
+
+      if (mode !== 'post') {                      // WhatsApp hand-off
+        if (sentLink) { sentLink.href = waUrl(d); }
+        showBox(sentBox);
+        window.open(waUrl(d), '_blank', 'noopener');   // 'noopener' makes the return value useless, so the fallback link always shows
+        return;
+      }
+
+      // Real submission
+      if (val('_gotcha')) { return; }             // honeypot filled in: a bot, drop it silently
+      hideResults();
+      submitBtn.disabled = true;
+      var label = submitBtn.getAttribute('data-label');
+      submitBtn.textContent = submitBtn.getAttribute('data-busy') || label;
+      var ctl = ('AbortController' in window) ? new AbortController() : null;
+      var timer = ctl ? setTimeout(function () { ctl.abort(); }, 15000) : null;
+      var payload = {
+        _subject: 'BMS ' + kind + ' enquiry: ' + d.material,
+        enquiry_type: kind, material: d.material, material_slug: d.slug,
+        quantity: d.qtyLine, location: d.location, notes: d.notes,
+        name: d.name, company: d.company, phone: d.phone, email: d.email,
+        language: lang, page: window.location.href, _gotcha: ''
+      };
+      fetch(form.getAttribute('data-endpoint'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: ctl ? ctl.signal : undefined
+      }).then(function (res) {
+        if (!res.ok) { throw new Error('HTTP ' + res.status); }
+        form.reset(); toggleOther();
+        showBox(okBox); okBox.focus({ preventScroll: true });
+      }).catch(function () {
+        if (sentLink) { sentLink.href = waUrl(d); }
+        showBox(failBox); failBox.focus({ preventScroll: true });
+      }).then(function () {
+        if (timer) { clearTimeout(timer); }
+        submitBtn.disabled = false;
+        submitBtn.textContent = label;
+      });
+    });
+
+    // Clear an error as soon as the visitor fixes the field
+    form.addEventListener('input', function (e) {
+      if (e.target.getAttribute && e.target.getAttribute('aria-invalid') === 'true') { e.target.setAttribute('aria-invalid', 'false'); }
+      if (contactErr && (e.target.name === 'phone' || e.target.name === 'email')) { contactErr.classList.remove('show'); }
+    });
+  }
+})();

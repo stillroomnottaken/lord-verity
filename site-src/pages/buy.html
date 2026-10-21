@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import wa_btn, mail_btn, material_select with context %}
+{% set live = site.inquiry_endpoint|length > 0 %}
+{% block title %}{{ L('For Buyers', 'Untuk Buyer') }}{% endblock %}
+{% block desc %}{{ L('Looking for agricultural or bio-based materials? Choose a material and send an enquiry to BMS.', 'Mencari bahan pertanian atau berbasis hayati? Pilih material dan kirim permintaan ke BMS.') }}{% endblock %}
+{% block main %}
+<section class="head head-moss">
+  <div class="wrap">
+    <p class="eyebrow">{{ L('For buyers', 'Untuk buyer') }}</p>
+    <h1>{{ L('Looking for a material? Ask BMS.', 'Mencari material? Tanyakan ke BMS.') }}</h1>
+    <p class="lead">{{ L('Browse the catalogue, pick a material and tell us what you need. Specifications, packing and delivery are discussed per enquiry.', 'Lihat katalog, pilih material, dan sampaikan kebutuhan Anda. Spesifikasi, kemasan, dan pengiriman dibahas per permintaan.') }}</p>
+  </div>
+</section>
+
+<section class="sec" aria-labelledby="inq-h">
+  <div class="wrap form-grid">
+    <form id="buyer-form" class="form" novalidate data-kind="buyer" data-mode="{{ 'post' if live else 'whatsapp' }}"{% if live %} data-endpoint="{{ site.inquiry_endpoint }}"{% endif %} data-wa="{{ site.whatsapp }}" data-lang="{{ lang }}">
+      <h2 id="inq-h" style="font-size:1.5rem">{{ L('Send an enquiry', 'Kirim permintaan') }}</h2>
+      <div class="field">
+        <label class="l" for="b-material">{{ L('Material', 'Material') }} <span class="req" aria-hidden="true">*</span></label>
+        {{ material_select('b-material') }}
+        <p class="err">{{ L('Please select a material.', 'Pilih material.') }}</p>
+      </div>
+      <div class="field" data-other hidden>
+        <label class="l" for="b-other">{{ L('Which material?', 'Material apa?') }}</label>
+        <input id="b-other" name="other" type="text" maxlength="80">
+      </div>
+      <div class="field">
+        <label class="l" for="b-qty">{{ L('Quantity needed', 'Jumlah yang dibutuhkan') }} <span class="opt">({{ L('optional', 'opsional') }})</span></label>
+        <div class="row-q">
+          <input id="b-qty" name="qty" type="number" min="0" step="any" inputmode="decimal" placeholder="20">
+          <select name="unit" aria-label="{{ L('Unit', 'Satuan') }}"><option value="ton">{{ L('Tons', 'Ton') }}</option><option value="kg">kg</option><option value="">{{ L('To be discussed', 'Dibahas nanti') }}</option></select>
+        </div>
+      </div>
+      <div class="field">
+        <label class="l" for="b-location">{{ L('Delivery location (city / port)', 'Lokasi pengiriman (kota / pelabuhan)') }} <span class="opt">({{ L('optional', 'opsional') }})</span></label>
+        <input id="b-location" name="location" type="text" maxlength="80" autocomplete="off">
+      </div>
+      <div class="field">
+        <label class="l" for="b-notes">{{ L('Specifications or notes', 'Spesifikasi atau catatan') }} <span class="opt">({{ L('optional', 'opsional') }})</span></label>
+        <textarea id="b-notes" name="notes" rows="3" maxlength="600" placeholder="{{ L('e.g. particle size, packing, timing', 'mis. ukuran partikel, kemasan, waktu') }}"></textarea>
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label class="l" for="b-name">{{ L('Your name', 'Nama Anda') }} <span class="req" aria-hidden="true">*</span></label>
+          <input id="b-name" name="name" type="text" autocomplete="name" maxlength="80" required>
+          <p class="err">{{ L('Please enter your name.', 'Masukkan nama Anda.') }}</p>
+        </div>
+        <div class="field">
+          <label class="l" for="b-company">{{ L('Company', 'Perusahaan') }} <span class="opt">({{ L('optional', 'opsional') }})</span></label>
+          <input id="b-company" name="company" type="text" autocomplete="organization" maxlength="80">
+        </div>
+      </div>
+      <p class="hint" style="margin:0 0 8px">{{ L('How can we reach you? Please give at least one.', 'Bagaimana kami menghubungi Anda? Isi minimal satu.') }}</p>
+      <div class="row-2">
+        <div class="field">
+          <label class="l" for="b-phone">{{ L('WhatsApp number', 'Nomor WhatsApp') }}</label>
+          <input id="b-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="0812 3456 7890">
+          <p class="err">{{ L('Please enter a valid phone number.', 'Masukkan nomor telepon yang valid.') }}</p>
+        </div>
+        <div class="field">
+          <label class="l" for="b-email">Email</label>
+          <input id="b-email" name="email" type="email" autocomplete="email" maxlength="120">
+          <p class="err">{{ L('Please enter a valid email address.', 'Masukkan alamat email yang valid.') }}</p>
+        </div>
+      </div>
+      <p class="err" data-contact-err style="margin:-8px 0 12px">{{ L('Please give a WhatsApp number or an email address.', 'Isi nomor WhatsApp atau alamat email.') }}</p>
+      {# honeypot: hidden from people, bots fill it in #}
+      <div class="hp" aria-hidden="true"><label>Website <input type="text" name="_gotcha" tabindex="-1" autocomplete="off"></label></div>
+      <button class="btn btn-forest" type="submit" data-label="{{ L('Send enquiry', 'Kirim permintaan') if live else L('Continue on WhatsApp', 'Lanjutkan di WhatsApp') }}" data-busy="{{ L('Sending...', 'Mengirim...') }}">{{ L('Send enquiry', 'Kirim permintaan') if live else L('Continue on WhatsApp', 'Lanjutkan di WhatsApp') }}</button>
+      <p class="hint">{% if live %}{{ L('Your enquiry goes straight to the BMS team.', 'Permintaan Anda langsung diterima tim BMS.') }}{% else %}{{ L('This opens WhatsApp with your enquiry written out. Just tap send.', 'Ini membuka WhatsApp dengan permintaan Anda sudah tertulis. Tinggal tekan kirim.') }}{% endif %}</p>
+
+      {% if live %}
+      <div class="sent" data-ok role="status" aria-live="polite">
+        <p><b>{{ L('Thank you. Your enquiry has been received.', 'Terima kasih. Permintaan Anda sudah kami terima.') }}</b> {{ L('The BMS team will contact you.', 'Tim BMS akan menghubungi Anda.') }}</p>
+      </div>
+      <div class="sent sent-bad" data-fail role="alert">
+        <p><b>{{ L('Your enquiry could not be sent.', 'Permintaan Anda tidak dapat terkirim.') }}</b> {{ L('Please try again, or send it on WhatsApp instead.', 'Silakan coba lagi, atau kirim lewat WhatsApp.') }}</p>
+        <p><a class="btn btn-gold btn-sm" data-sent-link href="https://wa.me/{{ site.whatsapp }}" target="_blank" rel="noopener">{{ L('Send on WhatsApp', 'Kirim lewat WhatsApp') }}</a></p>
+      </div>
+      {% else %}
+      <div class="sent" data-sent role="status" aria-live="polite">
+        <p><b>{{ L('WhatsApp should now be open.', 'WhatsApp seharusnya sudah terbuka.') }}</b> {{ L('Your enquiry is only sent once you tap send there.', 'Permintaan Anda baru terkirim setelah Anda menekan kirim di sana.') }}</p>
+        <p><a class="btn btn-gold btn-sm" data-sent-link href="https://wa.me/{{ site.whatsapp }}" target="_blank" rel="noopener">{{ L('Not opened? Tap here', 'Belum terbuka? Tekan di sini') }}</a></p>
+      </div>
+      {% endif %}
+      <noscript><p class="hint">{{ L('This form needs JavaScript. Please use WhatsApp instead:', 'Formulir ini membutuhkan JavaScript. Silakan gunakan WhatsApp:') }} <a href="https://wa.me/{{ site.whatsapp }}">wa.me/{{ site.whatsapp }}</a></p></noscript>
+    </form>
+
+    <aside class="info" aria-label="{{ L('Other ways to reach us', 'Cara lain menghubungi kami') }}">
+      <h2>{{ L('Prefer to talk?', 'Lebih suka bicara langsung?') }}</h2>
+      <p>{{ L('Message the team directly about a material or quantity.', 'Kirim pesan langsung ke tim tentang material atau jumlah.') }}</p>
+      <div class="actions">
+        {{ wa_btn(L('WhatsApp us', 'WhatsApp kami'), L('Hello BMS, I would like to ask about a material.', 'Halo BMS, saya ingin menanyakan sebuah material.'), 'btn-maize') }}
+        {{ mail_btn(L('Email us', 'Kirim email'), L('Buyer enquiry', 'Permintaan buyer'), 'btn-line') }}
+      </div>
+      <p class="info-link"><a href="{{ url('catalogue') }}">{{ L('Browse the materials catalogue', 'Lihat katalog material') }} &rarr;</a></p>
+    </aside>
+  </div>
+</section>
+{% endblock %}

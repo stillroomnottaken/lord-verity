@@ -1,0 +1,66 @@
+[
+  {
+    "slug": "corn-cobs",
+    "cat": "agri",
+    "detail": true,
+    "image": "corn-cobs.webp",
+    "name": {
+      "en": "Corn Cobs",
+      "id": "Tongkol Jagung"
+    }
+  },
+  {
+    "slug": "cocoa",
+    "cat": "agri",
+    "image": "cocoa.webp",
+    "name": {
+      "en": "Cocoa",
+      "id": "Kakao"
+    }
+  },
+  {
+    "slug": "candlenuts",
+    "cat": "agri",
+    "image": "candlenuts.webp",
+    "name": {
+      "en": "Candlenuts",
+      "id": "Kemiri"
+    }
+  },
+  {
+    "slug": "rubber-seeds",
+    "cat": "agri",
+    "image": "rubber-seeds.webp",
+    "name": {
+      "en": "Rubber Seeds",
+      "id": "Biji Karet"
+    }
+  },
+  {
+    "slug": "rubber-seed-oil",
+    "cat": "bio",
+    "image": "rubber-seed-oil.webp",
+    "name": {
+      "en": "Rubber Seed Oil",
+      "id": "Minyak Biji Karet"
+    }
+  },
+  {
+    "slug": "cnsl",
+    "cat": "bio",
+    "image": "cnsl.webp",
+    "name": {
+      "en": "CNSL",
+      "id": "CNSL"
+    }
+  },
+  {
+    "slug": "petrochemicals",
+    "cat": "industrial",
+    "image": "petrochemicals.webp",
+    "name": {
+      "en": "Petrochemicals",
+      "id": "Petrokimia"
+    }
+  }
+]

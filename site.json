@@ -1,0 +1,52 @@
+{
+  "name": "PT Berkat Muri Sejahtera",
+  "short": "BMS",
+  "nib": "0807240054536",
+  "base_url": "",
+  "whatsapp": "6281289090842",
+  "email": "contact.ptbms@gmail.com",
+  "inquiry_endpoint": "",
+  "contacts": [
+    {
+      "name": "Kris Dwi Atmaja",
+      "display": "0812-8909-0842",
+      "e164": "6281289090842"
+    },
+    {
+      "name": "Kristian Febrianta",
+      "display": "0817-8819-4848",
+      "e164": "6281788194848"
+    }
+  ],
+  "social": {
+    "instagram": "",
+    "linkedin": "",
+    "facebook": ""
+  },
+  "pages": {
+    "home": {
+      "en": "index",
+      "id": "index"
+    },
+    "about": {
+      "en": "about",
+      "id": "tentang"
+    },
+    "catalogue": {
+      "en": "catalogue",
+      "id": "katalog"
+    },
+    "supply": {
+      "en": "become-a-supplier",
+      "id": "jadi-supplier"
+    },
+    "buy": {
+      "en": "for-buyers",
+      "id": "untuk-buyer"
+    },
+    "contact": {
+      "en": "contact",
+      "id": "kontak"
+    }
+  }
+}
